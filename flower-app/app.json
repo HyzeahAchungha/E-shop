@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Flower Shop",
+    "slug": "flower-app",
+    "version": "1.0.0",
+    "scheme": "flower-shop",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/images/app-icon.png",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/flower-logo.png",
+          "imageWidth": 72,
+          "resizeMode": "contain"
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
