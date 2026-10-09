@@ -1,6 +1,5 @@
 import { isLoaded } from 'expo-font';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,7 +10,6 @@ export default function WelcomeRoute() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [notice, setNotice] = useState<string | null>(null);
   const contentWidth = Math.min(width, 480);
   const artworkScale = Math.min(contentWidth / 393, (height - insets.top - insets.bottom) / 771);
   const headingSize = width < 360 ? 22 : 25;
@@ -45,19 +43,12 @@ export default function WelcomeRoute() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Sign In"
-                onPress={() => setNotice('Sign in will be available soon.')}
+                onPress={() => router.push('/signin')}
                 style={({ pressed }) => [styles.signInButton, pressed && styles.pressed]}
               >
                 <Text style={[styles.signInText, { fontFamily: semiboldFont }]}>Sign In</Text>
               </Pressable>
             </View>
-            {notice && (
-              <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={[
-                styles.notice, { fontFamily: regularFont },
-              ]}>
-                {notice}
-              </Text>
-            )}
           </View>
         </View>
       </ScrollView>
@@ -80,5 +71,4 @@ const styles = StyleSheet.create({
   accountText: { color: colors.text, fontSize: 16, lineHeight: 24 },
   signInButton: { minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'center' },
   signInText: { color: colors.primary, fontSize: 16, lineHeight: 24, fontWeight: '600', textDecorationLine: 'underline' },
-  notice: { color: colors.textMuted, fontSize: 14, lineHeight: 21, textAlign: 'center', marginTop: 12 },
 });

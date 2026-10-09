@@ -36,6 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding-shopping" />
           <Stack.Screen name="onboarding-delivery" />
           <Stack.Screen name="(auth)/signup" />
+          <Stack.Screen name="(auth)/signin" />
           <Stack.Screen name="(auth)/verify-code" />
         </Stack>
       </View>
