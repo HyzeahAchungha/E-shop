@@ -13,13 +13,21 @@ npm start
 
 Open the project in Expo Go compatible with SDK 57, or use an Expo development build. `npm run android` opens a connected Android device/emulator; `npm run ios` requires macOS with an iOS simulator.
 
-## Current screen
+## Current screens
 
-The splash screen is the entry route. It uses a local rose logo, original floral line artwork, Inter SemiBold, and the supplied palette. Artwork sources are in `assets/artwork/`; the app uses PNG exports for predictable native rendering. No network access, API keys, authentication, or database is needed by this screen.
+The splash screen is the entry route. It uses a local rose logo, original floral line artwork, Inter SemiBold, and the supplied palette. Artwork sources are in `assets/artwork/`; the app uses PNG exports for predictable native rendering. No network access, API keys, authentication, or database is needed by these screens.
 
 The OS launch screen uses the purple logo on white. Once the bundled font is ready, the app displays the full floral design. A system font fallback allows launch if the font cannot load. The operating system controls its launch screen presentation; verify this in a release build, as Expo Go and development builds do not fully reproduce it.
 
-**Review checkpoint:** the splash currently stays on screen for design approval. The welcome screen and transition are pending. Once implemented, the launch sequence will be splash → welcome. The approved welcome copy is “Fresh flowers for every occasion, delivered with care to your doorstep.” The destination of “Let’s Get Started” will follow the next supplied design.
+The splash is approved. On normal launch, its first layout starts a 1.5-second display period, then Expo Router replaces it with `/welcome`; going back does not reopen the splash. The timeout is cleared if the splash unmounts. The root layout loads Inter Regular and SemiBold for both routes and also releases the native launch screen when `/welcome` is opened directly.
+
+The approved welcome screen uses two bundled flower portraits, the supplied colors, rounded hashtag labels, and the approved copy: “Fresh flowers for every occasion, delivered with care to your doorstep.” It supports scrolling on small displays and with enlarged text. Sources for the photos are in `assets/artwork/README.md`.
+
+“Let’s Get Started” opens `/onboarding`. “Sign In” still shows an explicit “available soon” message; no Clerk session or API is simulated. A fresh launch shows splash → welcome each time, with no persisted onboarding state.
+
+**Review checkpoint:** `/onboarding` is the first slide, titled “Craft Your Ultimate Floral Collection.” It has the first of three progress dots active, decorative wishlist phone artwork, and the approved description: “Save your favorite flowers and bouquets, and keep every beautiful find in one place.” The phone's products, prices, ratings, hearts, and tabs are illustrative sample content, not a working wishlist or backend data.
+
+Back dismisses to welcome, including when the slide is opened directly. Skip and Next share the same pending action and currently show “The next step will be available soon.” Their destination will be connected when the next supplied screen is implemented. No later slides or onboarding-completion state are implemented.
 
 ## Structure
 

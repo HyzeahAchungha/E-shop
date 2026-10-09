@@ -1,20 +1,20 @@
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { useCallback } from 'react';
+import { isLoaded } from 'expo-font';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 
 import { BrandSplash } from '@/components/ui/BrandSplash';
+import { typography } from '@/theme';
 
 export default function SplashRoute() {
-  const [fontLoaded, fontError] = useFonts({ Inter_600SemiBold });
-  const ready = fontLoaded || Boolean(fontError);
-  const onLayout = useCallback(() => {
-    if (ready) void SplashScreen.hideAsync().catch(console.warn);
-  }, [ready]);
+  const router = useRouter();
+  const [visible, setVisible] = useState(false);
+  const onLayout = useCallback(() => setVisible(true), []);
 
-  if (!ready) return null;
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => router.replace('/welcome'), 1500);
+    return () => clearTimeout(timer);
+  }, [router, visible]);
 
-  // Keep this screen available for review. Add the welcome transition only
-  // after that screen's implementation is approved.
-  return <BrandSplash fontReady={fontLoaded} onLayout={onLayout} />;
+  return <BrandSplash fontReady={isLoaded(typography.brand)} onLayout={onLayout} />;
 }
