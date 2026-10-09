@@ -15,3 +15,9 @@ Local JPEGs are resized copies of Pexels photographs, used as similar assets for
 - [Pexels license](https://www.pexels.com/license/).
 
 `welcome-flourish.svg` is original decorative spiral artwork; `../images/welcome-flourish.png` is its 3× export. The screen renders rounded photo crops and hashtag badges in React Native. All artwork is bundled for offline use.
+
+## Onboarding artwork
+
+`wishlist-preview.svg` is original decorative vector artwork: a phone frame containing a fictional wishlist and sample bouquets, prices, ratings, category chips, and favorite icons. These are part of the illustration and have no product interactions or backend connection. `../images/wishlist-preview.png` is the 900×1770 export, rendered with the project's bundled Inter fonts. No new photo or image-generation service was used for this artwork.
+
+`onboarding-curve.svg` and its 3× PNG export form the curved white section boundary. All images are bundled locally. The slide's actual Skip/Back/Next controls and accessible progress indicator are React Native components, separate from the decorative phone.

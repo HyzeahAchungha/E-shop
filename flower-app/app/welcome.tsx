@@ -1,4 +1,5 @@
 import { isLoaded } from 'expo-font';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +8,7 @@ import { WelcomeArtwork } from '@/components/ui/WelcomeArtwork';
 import { colors, typography } from '@/theme';
 
 export default function WelcomeRoute() {
+  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [notice, setNotice] = useState<string | null>(null);
@@ -33,7 +35,7 @@ export default function WelcomeRoute() {
             </Text>
             <Pressable
               accessibilityRole="button"
-              onPress={() => setNotice('Getting started will be available soon.')}
+              onPress={() => router.push('/onboarding')}
               style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             >
               <Text style={[styles.buttonText, { fontFamily: semiboldFont }]}>Let’s Get Started</Text>

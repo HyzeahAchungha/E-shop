@@ -29,6 +29,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: styles.screen }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
+          <Stack.Screen name="onboarding" />
         </Stack>
       </View>
     </SafeAreaProvider>
