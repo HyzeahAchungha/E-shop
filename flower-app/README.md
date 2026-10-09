@@ -23,17 +23,23 @@ The splash is approved. On normal launch, its first layout starts a 1.5-second d
 
 The approved welcome screen uses two bundled flower portraits, the supplied colors, rounded hashtag labels, and the approved copy: “Fresh flowers for every occasion, delivered with care to your doorstep.” It supports scrolling on small displays and with enlarged text. Sources for the photos are in `assets/artwork/README.md`.
 
-“Let’s Get Started” opens `/onboarding`. “Sign In” still shows an explicit “available soon” message; no Clerk session or API is simulated. A fresh launch shows splash → welcome each time, with no persisted onboarding state.
+“Let’s Get Started” opens `/onboarding`. “Sign In” still shows an explicit “available soon” message; no Clerk session or API is simulated. First-time launches show splash → welcome. After the user finishes the final onboarding slide, later launches show splash → signup.
 
 `/onboarding` is the first slide, titled “Craft Your Ultimate Floral Collection.” It has the first of three progress dots active, decorative wishlist phone artwork, and the approved description: “Save your favorite flowers and bouquets, and keep every beautiful find in one place.” The phone's products, prices, ratings, hearts, and tabs are illustrative sample content, not a working wishlist or backend data.
 
 Back on slide 1 dismisses to welcome, including when opened directly. Both Skip and Next open `/onboarding-shopping`.
 
-**Review checkpoint:** slide 2 is “Seamless Flower Shopping Experience,” with the middle progress dot active and the approved description: “Discover beautiful blooms, explore special offers, and find the perfect flowers for every occasion.” The decorative phone depicts a fictional shop, special offer, and recommended products. It is not a functional shopping screen or live product data.
+Slide 2 is “Seamless Flower Shopping Experience,” with the middle progress dot active and the approved description: “Discover beautiful blooms, explore special offers, and find the perfect flowers for every occasion.” The decorative phone depicts a fictional shop, special offer, and recommended products. It is not a functional shopping screen or live product data.
 
-Slide 2's Back button dismisses to slide 1, including from a direct link. Skip and Next currently show “The final onboarding step will be available soon.” Both will lead to the final onboarding screen when its reference is supplied and implemented. No completion state or third slide is implemented.
+Slide 2's Back button dismisses to slide 1, including from a direct link. Both Skip and Next open `/onboarding-delivery`.
 
-Both slides reuse `src/components/ui/OnboardingSlide.tsx` for layout, progress accessibility, and controls. Route files own their content and navigation.
+**Review checkpoint:** slide 3 is “From Cart to Door: Swift & Reliable Flower Delivery,” with the third dot active, no Skip button, and decorative tracking artwork. Its description is “Track your order every step of the way, from your favorite florist to your doorstep.” Back returns to slide 2. The final arrow saves onboarding completion before resetting the navigation stack to `/signup`.
+
+`src/store/onboarding.ts` uses Expo-compatible AsyncStorage for the non-sensitive device-local flag `@flower-shop/onboarding-completed-v1`. A missing or unrecognized value is incomplete. Interrupted onboarding remains incomplete. A failed write keeps the user on slide 3 with a retry message; buttons are disabled while saving, and repeated taps cannot create concurrent saves. If reading storage fails at startup, the app falls back to the first-time flow rather than getting stuck. Clearing app data removes the flag; reinstall behavior depends on the platform's backup settings.
+
+Signup is currently only a reserved route in `app/(auth)/signup.tsx`, showing “Sign up will be available soon.” No form, account, or Clerk session is simulated. Signup design and Clerk behavior will be implemented after this slide is approved and its reference is supplied. The completion flag is never an authentication or authorization check.
+
+All three slides reuse `src/components/ui/OnboardingSlide.tsx` for layout, progress accessibility, and controls. Route files own their content and navigation.
 
 ## Structure
 

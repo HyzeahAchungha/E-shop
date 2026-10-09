@@ -31,6 +31,8 @@ export default function RootLayout() {
           <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="onboarding-shopping" />
+          <Stack.Screen name="onboarding-delivery" />
+          <Stack.Screen name="(auth)/signup" />
         </Stack>
       </View>
     </SafeAreaProvider>

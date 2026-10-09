@@ -15,10 +15,14 @@ type OnboardingSlideProps = {
   onBack: () => void;
   onNext: () => void;
   notice?: string | null;
+  showSkip?: boolean;
+  nextLabel?: string;
+  busy?: boolean;
 };
 
 export function OnboardingSlide({
   step, artwork, heading, description, backLabel, onBack, onNext, notice,
+  showSkip = true, nextLabel = 'Next', busy = false,
 }: OnboardingSlideProps) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -32,14 +36,16 @@ export function OnboardingSlide({
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={[styles.frame, { width: contentWidth, minHeight: height - insets.top }]}>
           <View style={styles.header}>
-            <Pressable
+            {showSkip ? <Pressable
               accessibilityRole="button"
               accessibilityLabel="Skip"
               onPress={onNext}
+              disabled={busy}
+              accessibilityState={{ disabled: busy }}
               style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}
             >
               <Text style={[styles.skipText, { fontFamily: regularFont }]}>Skip</Text>
-            </Pressable>
+            </Pressable> : <View style={styles.skipButton} />}
           </View>
           <View
             accessibilityElementsHidden
@@ -76,7 +82,7 @@ export function OnboardingSlide({
                 ]}>{notice}</Text>
               )}
               <View style={styles.controls}>
-                <ArrowButton direction="back" accessibilityLabel={backLabel} onPress={onBack} />
+                <ArrowButton direction="back" accessibilityLabel={backLabel} onPress={onBack} disabled={busy} />
                 <View
                   accessible
                   accessibilityRole="progressbar"
@@ -91,7 +97,7 @@ export function OnboardingSlide({
                     <View key={dot} style={[styles.dot, dot === step ? styles.activeDot : styles.inactiveDot]} />
                   ))}
                 </View>
-                <ArrowButton direction="next" accessibilityLabel="Next" onPress={onNext} />
+                <ArrowButton direction="next" accessibilityLabel={nextLabel} onPress={onNext} busy={busy} />
               </View>
             </View>
           </View>
