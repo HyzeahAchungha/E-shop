@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { colors } from '@/theme';
 
@@ -6,9 +6,11 @@ type ArrowButtonProps = {
   direction: 'back' | 'next';
   accessibilityLabel: string;
   onPress: () => void;
+  disabled?: boolean;
+  busy?: boolean;
 };
 
-export function ArrowButton({ direction, accessibilityLabel, onPress }: ArrowButtonProps) {
+export function ArrowButton({ direction, accessibilityLabel, onPress, disabled = false, busy = false }: ArrowButtonProps) {
   const back = direction === 'back';
   const arrowColor = back ? colors.primary : colors.background;
 
@@ -17,12 +19,14 @@ export function ArrowButton({ direction, accessibilityLabel, onPress }: ArrowBut
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, back ? styles.outlined : styles.filled, pressed && styles.pressed]}
+      disabled={disabled || busy}
+      accessibilityState={{ disabled: disabled || busy, busy }}
+      style={({ pressed }) => [styles.button, back ? styles.outlined : styles.filled, (pressed || disabled) && styles.pressed]}
     >
-      <View accessible={false} style={[styles.arrow, back && styles.back]}>
+      {busy ? <ActivityIndicator color={arrowColor} /> : <View accessible={false} style={[styles.arrow, back && styles.back]}>
         <View style={[styles.shaft, { backgroundColor: arrowColor }]} />
         <View style={[styles.head, { borderColor: arrowColor }]} />
-      </View>
+      </View>}
     </Pressable>
   );
 }

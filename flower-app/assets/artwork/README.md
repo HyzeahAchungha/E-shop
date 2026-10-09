@@ -27,3 +27,11 @@ Local JPEGs are resized copies of Pexels photographs, used as similar assets for
 `shopping-preview.svg` and its 900×1770 PNG export reuse the original phone frame and bouquet symbols from `wishlist-preview.svg`. The illustration adds a purple shop header, search field, fictional special offer, category chips, and sample recommendations. These controls and offers are decorative, not interactive or real promotions.
 
 The offer banner embeds the existing Pexels photo 22638496 (`welcome-fresh.jpg`), with the source and license listed above. The SVG embeds it so the source remains portable; the app uses only the raster export. Inter is rendered using the existing bundled font files. No new downloads, runtime dependencies, or image-generation service were required.
+
+## Delivery onboarding artwork
+
+`delivery-preview.svg` and its 900×1770 PNG export reuse the original phone frame and bouquet symbol, with a fictional order summary, sample tracking ID/date, and static status timeline. They are decorative and do not display real orders or delivery estimates. All text and icons are embedded in the exported artwork; no tracking service is called.
+
+## Signup provider mark
+
+`assets/images/google-logo.png` is the Google identity mark from https://developers.google.com/identity/images/g-logo.png, bundled for the Google signup button. Apple and Facebook marks come from the FontAwesome icon font bundled by `@expo/vector-icons`.
