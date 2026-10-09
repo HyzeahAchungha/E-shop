@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="840" viewBox="0 0 280 280">
+  <defs>
+    <g id="flower" fill="none" stroke="#F1F1F1" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0-5C-19-14-24-36-10-42-8-53 9-53 15-40 29-43 38-25 28-16 27-4 12 1 0-5Z"/>
+      <path d="M4-1C17-20 38-25 46-13 58-10 57 7 45 13 42 26 22 26 18 16 8 13 5 6 4-1Z"/>
+      <path d="M3 4C24 5 33 23 26 33 28 47 12 54 3 42-11 47-22 33-15 21-14 11-6 7 3 4Z"/>
+      <path d="M-5 3C-9 24-29 32-39 20-53 19-56 3-44-6-45-21-29-30-19-21-9-19-5-9-5 3Z"/>
+      <path d="M-10-6C-21-29-16-41-10-42M10-9C21-25 20-33 15-40M11 6C30 9 38 4 45 0M-4 12C-6 30 4 35 3 42M-15 2C-30 5-38 0-44-6" stroke-width=".7"/>
+      <g stroke-width=".85">
+        <path d="M0 0-7-22M0 0 4-25M0 0 16-19M0 0 23-7M0 0 22 7M0 0 14 19M0 0 1 23M0 0-12 19M0 0-21 10M0 0-22-4M0 0-18-15"/>
+        <circle cx="-7" cy="-22" r="1.7"/><circle cx="4" cy="-25" r="1.7"/><circle cx="16" cy="-19" r="1.7"/><circle cx="23" cy="-7" r="1.7"/><circle cx="22" cy="7" r="1.7"/><circle cx="14" cy="19" r="1.7"/><circle cx="1" cy="23" r="1.7"/><circle cx="-12" cy="19" r="1.7"/><circle cx="-21" cy="10" r="1.7"/><circle cx="-22" cy="-4" r="1.7"/><circle cx="-18" cy="-15" r="1.7"/>
+      </g>
+      <circle r="5"/><circle cx="-1" cy="1" r="2"/>
+    </g>
+    <g id="leaf" fill="none" stroke="#F1F1F1" stroke-width="1.1" stroke-linecap="round">
+      <path d="M0 0C-26-8-39-27-36-55-11-44 3-24 0 0ZM0 0-36-55"/>
+      <path d="M-5-8-5-26M-10-15-11-35M-15-23-18-43M-20-31-26-49M-6-10-22-13M-12-19-30-24M-18-28-34-35M-25-39-36-44" stroke-width=".7"/>
+    </g>
+  </defs>
+  <g fill="none" stroke="#F1F1F1" stroke-width="1.4" stroke-linecap="round">
+    <path d="M252 288C224 228 206 160 168 112 148 86 123 67 96 48M248 288C221 230 202 166 166 116 147 90 120 69 94 52"/>
+    <path d="M191 157C172 151 157 142 147 127M222 223C213 204 193 196 172 193M169 115C173 94 186 79 205 69M225 235C212 224 199 223 184 229"/>
+  </g>
+  <use href="#flower" transform="translate(94 54) rotate(-24) scale(.91)"/>
+  <use href="#flower" transform="translate(144 130) rotate(14) scale(.87)"/>
+  <use href="#leaf" transform="translate(173 193) rotate(-67) scale(1.08)"/>
+  <use href="#leaf" transform="translate(177 99) rotate(81) scale(.88)"/>
+  <use href="#leaf" transform="translate(195 230) rotate(-115) scale(1.05)"/>
+  <use href="#flower" transform="translate(244 147) rotate(-21) scale(.75)"/>
+</svg>
