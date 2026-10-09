@@ -1,4 +1,4 @@
-import { isClerkAPIResponseError, useAuth, useSSO } from '@clerk/expo';
+import { useAuth, useSSO } from '@clerk/expo';
 import { useSignUp } from '@clerk/expo/legacy';
 import { makeRedirectUri } from 'expo-auth-session';
 import { useRef, useState } from 'react';
@@ -10,12 +10,7 @@ import { finishSocialSignup, sendSignupCode, type EmailAttempt, type SignupResul
 
 export type { SignupResult, SignupValues, SocialProvider } from './signup-actions';
 
-export function signupErrorMessage(error: unknown): string {
-  if (isClerkAPIResponseError(error)) {
-    return error.errors[0]?.longMessage || error.errors[0]?.message || 'Unable to create your account. Please try again.';
-  }
-  return 'Unable to continue right now. Please check your connection and try again.';
-}
+export { authErrorMessage as signupErrorMessage } from './auth-errors';
 
 export function useSignup() {
   const { isLoaded, signUp } = useSignUp();

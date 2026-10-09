@@ -1,12 +1,13 @@
 import Feather from '@expo/vector-icons/Feather';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRef, useState } from 'react';
 import {
-  ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform,
+  ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform,
   Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AuthField } from '@/components/ui/AuthField';
+import { AuthSocialSection } from '@/components/ui/AuthSocialSection';
 import { colors, typography } from '@/theme';
 import { signupErrorMessage, type SignupResult, type SignupValues, type SocialProvider } from './useSignup';
 
@@ -18,18 +19,18 @@ type Props = {
   awaitingCode?: boolean;
   verificationEmail?: string;
   onVerification?: () => void;
+  onSignIn?: () => void;
 };
 type Errors = Partial<Record<keyof SignupValues | 'terms', string>>;
 
-export function SignupForm({ register, registerSocial, ready = true, isSignedIn = false, awaitingCode = false, verificationEmail, onVerification }: Props) {
+export function SignupForm({ register, registerSocial, ready = true, isSignedIn = false, awaitingCode = false, verificationEmail, onVerification, onSignIn }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [notice, setNotice] = useState('');
-  const [busy, setBusy] = useState<string | null>(null);
+  const [busy, setBusy] = useState<'email' | SocialProvider | null>(null);
   const [finished, setFinished] = useState(false);
   const submitting = useRef(false);
   const emailInput = useRef<TextInput>(null);
@@ -93,37 +94,15 @@ export function SignupForm({ register, registerSocial, ready = true, isSignedIn 
             <Text style={styles.subtitle}>Fill your information below or register{ '\n' }with your social account.</Text>
 
             <View style={styles.form}>
-              <View style={styles.field}>
-                <Text nativeID="signup-name-label" style={styles.label}>Name</Text>
-                <TextInput accessibilityLabel="Name" aria-labelledby="signup-name-label" style={[styles.input, errors.name && styles.invalid]} value={name}
-                  onChangeText={setName} placeholder="Ex. John Doe" placeholderTextColor={colors.textMuted}
-                  autoCapitalize="words" autoComplete="name" textContentType="name" editable={!fieldsLocked}
-                  returnKeyType="next" onSubmitEditing={() => emailInput.current?.focus()} />
-                {errors.name && <Text accessibilityRole="alert" style={styles.error}>{errors.name}</Text>}
-              </View>
-              <View style={styles.field}>
-                <Text nativeID="signup-email-label" style={styles.label}>Email</Text>
-                <TextInput ref={emailInput} accessibilityLabel="Email" aria-labelledby="signup-email-label" style={[styles.input, errors.email && styles.invalid]} value={email}
-                  onChangeText={setEmail} placeholder="example@gmail.com" placeholderTextColor={colors.textMuted}
-                  keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email"
-                  textContentType="emailAddress" editable={!fieldsLocked} returnKeyType="next"
-                  onSubmitEditing={() => passwordInput.current?.focus()} />
-                {errors.email && <Text accessibilityRole="alert" style={styles.error}>{errors.email}</Text>}
-              </View>
-              <View style={styles.field}>
-                <Text nativeID="signup-password-label" style={styles.label}>Password</Text>
-                <View style={[styles.passwordRow, errors.password && styles.invalid]}>
-                  <TextInput ref={passwordInput} accessibilityLabel="Password" aria-labelledby="signup-password-label" style={styles.passwordInput} value={password}
-                    onChangeText={setPassword} placeholder="****************" placeholderTextColor={colors.textMuted}
-                    secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} autoComplete="new-password"
-                    textContentType="newPassword" editable={!fieldsLocked} returnKeyType="done" onSubmitEditing={() => void submit()} />
-                  <Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                    accessibilityState={{ disabled: fieldsLocked }} disabled={fieldsLocked} style={styles.eye} onPress={() => setShowPassword(!showPassword)}>
-                    <Feather name={showPassword ? 'eye' : 'eye-off'} size={23} color={colors.text} />
-                  </Pressable>
-                </View>
-                {errors.password && <Text accessibilityRole="alert" style={styles.error}>{errors.password}</Text>}
-              </View>
+              <AuthField label="Name" value={name} error={errors.name} onChangeText={setName} placeholder="Ex. John Doe"
+                autoCapitalize="words" autoComplete="name" textContentType="name" editable={!fieldsLocked}
+                returnKeyType="next" onSubmitEditing={() => emailInput.current?.focus()} />
+              <AuthField ref={emailInput} label="Email" value={email} error={errors.email} onChangeText={setEmail} placeholder="example@gmail.com"
+                keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email"
+                textContentType="emailAddress" editable={!fieldsLocked} returnKeyType="next" onSubmitEditing={() => passwordInput.current?.focus()} />
+              <AuthField ref={passwordInput} label="Password" isPassword value={password} error={errors.password} onChangeText={setPassword}
+                placeholder="****************" autoCapitalize="none" autoCorrect={false} autoComplete="new-password"
+                textContentType="newPassword" editable={!fieldsLocked} returnKeyType="done" onSubmitEditing={() => void submit()} />
             </View>
 
             <View style={styles.termsRow}>
@@ -149,24 +128,11 @@ export function SignupForm({ register, registerSocial, ready = true, isSignedIn 
               {busy === 'email' ? <ActivityIndicator color="white" /> : <Text style={styles.signupText}>{verificationEmail ? 'Continue to verification' : awaitingCode && !finished ? 'Retry sending code' : 'Sign Up'}</Text>}
             </Pressable>
 
-            <View style={styles.divider}>
-              <View style={styles.line} /><Text style={styles.dividerText}>Or sign up with</Text><View style={styles.line} />
-            </View>
-            <View style={styles.socialRow}>
-              {(['apple', 'google', 'facebook'] as const).map((provider) => (
-                <Pressable key={provider} accessibilityRole="button" accessibilityLabel={`Sign up with ${provider[0].toUpperCase()}${provider.slice(1)}`}
-                  aria-busy={busy === provider} accessibilityState={{ disabled: locked || !ready || awaitingCode || Boolean(verificationEmail), busy: busy === provider }} disabled={locked || !ready || awaitingCode || Boolean(verificationEmail)}
-                  style={({ pressed }) => [styles.social, pressed && styles.pressed, (locked || !ready || awaitingCode || Boolean(verificationEmail)) && styles.disabled]}
-                  onPress={() => void submit(provider)}>
-                  {busy === provider ? <ActivityIndicator color={colors.primary} /> : provider === 'google' ? (
-                    <Image source={require('../../../assets/images/google-logo.png')} style={styles.google} accessibilityIgnoresInvertColors />
-                  ) : <FontAwesome name={provider === 'apple' ? 'apple' : 'facebook'} size={27} color={provider === 'apple' ? '#000000' : '#3769D2'} />}
-                </Pressable>
-              ))}
-            </View>
+            <AuthSocialSection mode="signup" disabled={locked || !ready || awaitingCode || Boolean(verificationEmail)}
+              busy={busy && busy !== 'email' ? busy : null} onSelect={(provider) => void submit(provider)} />
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account? </Text>
-              <Pressable accessibilityRole="button" onPress={() => setNotice('Sign In will be available when its screen is added.')}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Sign In" disabled={busy !== null} onPress={onSignIn}>
                 <Text style={styles.link}>Sign In</Text>
               </Pressable>
             </View>
@@ -184,13 +150,6 @@ const styles = StyleSheet.create({
   heading: { fontFamily: typography.brand, fontSize: 27, lineHeight: 35, color: colors.text, textAlign: 'center' },
   subtitle: { fontFamily: typography.body, fontSize: 14, lineHeight: 20, color: colors.textMuted, textAlign: 'center', marginTop: 18, marginBottom: 28 },
   form: { gap: 22 },
-  field: { gap: 8 },
-  label: { fontFamily: typography.body, fontSize: 15, color: colors.text, lineHeight: 21 },
-  input: { fontFamily: typography.body, fontSize: 15, color: colors.text, backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 16, minHeight: 50, paddingVertical: 14, borderWidth: 1, borderColor: 'transparent' },
-  passwordRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: 10, minHeight: 50, borderWidth: 1, borderColor: 'transparent' },
-  passwordInput: { flex: 1, minWidth: 0, fontFamily: typography.body, fontSize: 15, color: colors.text, paddingHorizontal: 16, paddingVertical: 14 },
-  eye: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-  invalid: { borderColor: '#B42318' },
   error: { color: '#B42318', fontFamily: typography.body, fontSize: 13, lineHeight: 19 },
   termsRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 10 },
   checkboxTouch: { width: 34, minHeight: 44, justifyContent: 'center' },
@@ -203,12 +162,6 @@ const styles = StyleSheet.create({
   signupText: { fontFamily: typography.brand, fontSize: 18, lineHeight: 26, color: colors.background, textAlign: 'center' },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.55 },
-  divider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 46, paddingHorizontal: 36 },
-  line: { flex: 1, height: 1, backgroundColor: '#E3E3E3' },
-  dividerText: { fontFamily: typography.body, fontSize: 14, color: colors.textMuted },
-  socialRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 36 },
-  social: { width: 64, height: 64, borderRadius: 32, borderWidth: 1.5, borderColor: '#E6E6E6', alignItems: 'center', justifyContent: 'center' },
-  google: { width: 27, height: 28, resizeMode: 'contain' },
   footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 30 },
   footerText: { fontFamily: typography.body, fontSize: 14, color: colors.text },
 });
