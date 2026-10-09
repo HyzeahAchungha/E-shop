@@ -30,6 +30,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
           <Stack.Screen name="onboarding" />
+          <Stack.Screen name="onboarding-shopping" />
         </Stack>
       </View>
     </SafeAreaProvider>

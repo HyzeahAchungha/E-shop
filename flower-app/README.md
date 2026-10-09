@@ -25,9 +25,15 @@ The approved welcome screen uses two bundled flower portraits, the supplied colo
 
 “Let’s Get Started” opens `/onboarding`. “Sign In” still shows an explicit “available soon” message; no Clerk session or API is simulated. A fresh launch shows splash → welcome each time, with no persisted onboarding state.
 
-**Review checkpoint:** `/onboarding` is the first slide, titled “Craft Your Ultimate Floral Collection.” It has the first of three progress dots active, decorative wishlist phone artwork, and the approved description: “Save your favorite flowers and bouquets, and keep every beautiful find in one place.” The phone's products, prices, ratings, hearts, and tabs are illustrative sample content, not a working wishlist or backend data.
+`/onboarding` is the first slide, titled “Craft Your Ultimate Floral Collection.” It has the first of three progress dots active, decorative wishlist phone artwork, and the approved description: “Save your favorite flowers and bouquets, and keep every beautiful find in one place.” The phone's products, prices, ratings, hearts, and tabs are illustrative sample content, not a working wishlist or backend data.
 
-Back dismisses to welcome, including when the slide is opened directly. Skip and Next share the same pending action and currently show “The next step will be available soon.” Their destination will be connected when the next supplied screen is implemented. No later slides or onboarding-completion state are implemented.
+Back on slide 1 dismisses to welcome, including when opened directly. Both Skip and Next open `/onboarding-shopping`.
+
+**Review checkpoint:** slide 2 is “Seamless Flower Shopping Experience,” with the middle progress dot active and the approved description: “Discover beautiful blooms, explore special offers, and find the perfect flowers for every occasion.” The decorative phone depicts a fictional shop, special offer, and recommended products. It is not a functional shopping screen or live product data.
+
+Slide 2's Back button dismisses to slide 1, including from a direct link. Skip and Next currently show “The final onboarding step will be available soon.” Both will lead to the final onboarding screen when its reference is supplied and implemented. No completion state or third slide is implemented.
+
+Both slides reuse `src/components/ui/OnboardingSlide.tsx` for layout, progress accessibility, and controls. Route files own their content and navigation.
 
 ## Structure
 
