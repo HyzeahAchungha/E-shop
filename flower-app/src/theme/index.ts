@@ -8,5 +8,6 @@ export const colors = {
 } as const;
 
 export const typography = {
+  body: 'Inter_400Regular',
   brand: 'Inter_600SemiBold',
 } as const;

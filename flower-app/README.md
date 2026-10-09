@@ -13,13 +13,17 @@ npm start
 
 Open the project in Expo Go compatible with SDK 57, or use an Expo development build. `npm run android` opens a connected Android device/emulator; `npm run ios` requires macOS with an iOS simulator.
 
-## Current screen
+## Current screens
 
-The splash screen is the entry route. It uses a local rose logo, original floral line artwork, Inter SemiBold, and the supplied palette. Artwork sources are in `assets/artwork/`; the app uses PNG exports for predictable native rendering. No network access, API keys, authentication, or database is needed by this screen.
+The splash screen is the entry route. It uses a local rose logo, original floral line artwork, Inter SemiBold, and the supplied palette. Artwork sources are in `assets/artwork/`; the app uses PNG exports for predictable native rendering. No network access, API keys, authentication, or database is needed by these screens.
 
 The OS launch screen uses the purple logo on white. Once the bundled font is ready, the app displays the full floral design. A system font fallback allows launch if the font cannot load. The operating system controls its launch screen presentation; verify this in a release build, as Expo Go and development builds do not fully reproduce it.
 
-**Review checkpoint:** the splash currently stays on screen for design approval. The welcome screen and transition are pending. Once implemented, the launch sequence will be splash → welcome. The approved welcome copy is “Fresh flowers for every occasion, delivered with care to your doorstep.” The destination of “Let’s Get Started” will follow the next supplied design.
+The splash is approved. On normal launch, its first layout starts a 1.5-second display period, then Expo Router replaces it with `/welcome`; going back does not reopen the splash. The timeout is cleared if the splash unmounts. The root layout loads Inter Regular and SemiBold for both routes and also releases the native launch screen when `/welcome` is opened directly.
+
+**Review checkpoint:** the welcome screen now uses two bundled flower portraits, the supplied colors, rounded hashtag labels, and the approved copy: “Fresh flowers for every occasion, delivered with care to your doorstep.” It supports scrolling on small displays and with enlarged text. Sources for the photos are in `assets/artwork/README.md`.
+
+“Let’s Get Started” and “Sign In” currently show explicit “available soon” messages; no destination, Clerk session, or API is simulated. The next destination will follow the user's next supplied screen. For now, a fresh launch shows splash → welcome each time, with no persisted onboarding state.
 
 ## Structure
 
