@@ -38,6 +38,10 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/signup" />
           <Stack.Screen name="(auth)/signin" />
           <Stack.Screen name="(auth)/verify-code" />
+          <Stack.Screen name="(auth)/forgot-password" />
+          <Stack.Screen name="(auth)/reset-code" />
+          {/* No swipe-back: Back must cancel the reset explicitly. */}
+          <Stack.Screen name="(auth)/new-password" options={{ gestureEnabled: false }} />
         </Stack>
       </View>
     </SafeAreaProvider>

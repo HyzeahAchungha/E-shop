@@ -3,6 +3,8 @@ import { useSignIn } from '@clerk/expo/legacy';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Platform } from 'react-native';
 
+import { isResetAttemptClosed } from '@/store/password-reset';
+
 import type { SocialProvider } from './signup-actions';
 import { finishSocialSignin, signInWithPassword, type SigninResult, type SigninValues } from './signin-actions';
 
@@ -13,7 +15,7 @@ export function useSignin() {
 
   async function login(values: SigninValues): Promise<SigninResult> {
     if (!isLoaded || !signIn || !setActive) throw new Error('Sign-in is loading.');
-    return signInWithPassword(signIn, setActive, values);
+    return signInWithPassword(signIn, setActive, values, isResetAttemptClosed);
   }
 
   async function loginSocial(provider: SocialProvider): Promise<SigninResult> {
