@@ -1,12 +1,21 @@
-import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackButton } from '@/components/ui/BackButton';
 import { colors, typography } from '@/theme';
 import { signupErrorMessage } from './useSignup';
 import type { VerificationResult } from './verification-actions';
 import { CODE_LENGTH, resendSecondsRemaining, updateCodeDigits } from './verification-utils';
+
+// Signup wording is the default. The password reset flow overrides it through `copy`.
+export type VerificationCopy = { backLabel: string; emptySubtitle: string; missingAttemptError: string; completedNotice: string };
+const SIGNUP_COPY: VerificationCopy = {
+  backLabel: 'Back to signup',
+  emptySubtitle: 'Sign up to receive your verification code.',
+  missingAttemptError: 'Return to signup to request a verification code.',
+  completedNotice: 'Your email is verified and you’re signed in. Your next screen is coming soon.',
+};
 
 type Props = {
   email?: string;
@@ -18,10 +27,14 @@ type Props = {
   verify?: (code: string) => Promise<VerificationResult>;
   resend?: () => Promise<void>;
   onBack: () => void;
+  copy?: Partial<VerificationCopy>;
+  /** Called when a code is accepted without starting a session (password reset). */
+  onVerified?: () => void;
 };
 
 export function VerificationForm({ email, sentAt = 0, ready = true, hasAttempt = false, canResend = false,
-  isSignedIn = false, verify, resend, onBack }: Props) {
+  isSignedIn = false, verify, resend, onBack, copy, onVerified }: Props) {
+  const text = { ...SIGNUP_COPY, ...copy };
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [focused, setFocused] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -65,7 +78,7 @@ export function VerificationForm({ email, sentAt = 0, ready = true, hasAttempt =
       return;
     }
     if (!hasAttempt || !verify) {
-      setError('Return to signup to request a verification code.');
+      setError(text.missingAttemptError);
       return;
     }
     inFlight.current = true;
@@ -75,9 +88,10 @@ export function VerificationForm({ email, sentAt = 0, ready = true, hasAttempt =
     try {
       const result = await verify(digits.join(''));
       if (!mounted.current) return;
-      if (result.kind === 'authenticated') {
+      if (result.kind === 'authenticated' || result.kind === 'verified') {
         setDigits(Array(CODE_LENGTH).fill(''));
         setCompleted(true);
+        if (result.kind === 'verified') onVerified?.();
       } else {
         setNotice(result.message);
       }
@@ -115,12 +129,9 @@ export function VerificationForm({ email, sentAt = 0, ready = true, hasAttempt =
       <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
           <View style={styles.content}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Back to signup" disabled={busy !== null}
-              style={({ pressed }) => [styles.back, pressed && styles.pressed, busy !== null && styles.disabled]} onPress={onBack}>
-              <Feather name="arrow-left" size={23} color={colors.text} />
-            </Pressable>
+            <BackButton label={text.backLabel} disabled={busy !== null} onPress={onBack} />
             <Text accessibilityRole="header" style={styles.heading}>Verify Code</Text>
-            <Text style={styles.subtitle}>{email ? 'Please enter the code we just sent to email' : 'Sign up to receive your verification code.'}</Text>
+            <Text style={styles.subtitle}>{email ? 'Please enter the code we just sent to email' : text.emptySubtitle}</Text>
             {Boolean(email) && <Text style={styles.email}>{email}</Text>}
 
             <View style={styles.codeRow}>
@@ -142,7 +153,7 @@ export function VerificationForm({ email, sentAt = 0, ready = true, hasAttempt =
             </View>
             {Boolean(error) && <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{error}</Text>}
             {(notice || done) && <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.notice}>
-              {completed ? 'Your email is verified and you’re signed in. Your next screen is coming soon.'
+              {completed ? text.completedNotice
                 : isSignedIn ? 'You’re already signed in. Your next screen is coming soon.' : notice}
             </Text>}
             <View style={styles.resendArea}>
@@ -170,7 +181,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   scroll: { flexGrow: 1, alignItems: 'center', paddingHorizontal: 24, paddingTop: Platform.OS === 'web' ? 58 : 20, paddingBottom: 36 },
   content: { width: '100%', maxWidth: 440 },
-  back: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: '#E6E6E6', alignItems: 'center', justifyContent: 'center' },
   heading: { fontFamily: typography.brand, fontSize: 27, lineHeight: 36, textAlign: 'center', color: colors.text, marginTop: 36 },
   subtitle: { fontFamily: typography.body, fontSize: 14, lineHeight: 18, textAlign: 'center', color: colors.textMuted, marginTop: 0 },
   email: { fontFamily: typography.brand, fontSize: 14, lineHeight: 20, textAlign: 'center', color: colors.primary },

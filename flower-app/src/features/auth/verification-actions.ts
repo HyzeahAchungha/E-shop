@@ -2,7 +2,8 @@ import type { useSignUp } from '@clerk/expo/legacy';
 
 type SignupResource = NonNullable<ReturnType<typeof useSignUp>['signUp']>;
 type SetActive = NonNullable<ReturnType<typeof useSignUp>['setActive']>;
-export type VerificationResult = { kind: 'authenticated' } | { kind: 'incomplete'; message: string };
+// "verified" means the code was accepted without creating a session (password reset).
+export type VerificationResult = { kind: 'authenticated' } | { kind: 'verified' } | { kind: 'incomplete'; message: string };
 
 export async function verifySignupCode(
   signUp: Pick<SignupResource, 'status' | 'createdSessionId' | 'attemptEmailAddressVerification'>,

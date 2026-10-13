@@ -9,15 +9,22 @@ import { authErrorMessage } from './auth-errors';
 import type { SigninResult, SigninValues } from './signin-actions';
 import type { SocialProvider } from './signup-actions';
 
+const PASSWORD_RESET_NOTICE = 'Your password has been updated. Sign in with your new password.';
+
 type Props = {
   login?: (values: SigninValues) => Promise<SigninResult>;
   loginSocial?: (provider: SocialProvider) => Promise<SigninResult>;
   ready?: boolean;
   isSignedIn?: boolean;
+  /** True right after a password reset finished: shows the success message. */
+  passwordReset?: boolean;
+  /** Called once the user moves on, so the success message is not shown again. */
+  onPasswordResetSeen?: () => void;
   onSignUp: () => void;
+  onForgotPassword: () => void;
 };
 
-export function SigninForm({ login, loginSocial, ready = true, isSignedIn = false, onSignUp }: Props) {
+export function SigninForm({ login, loginSocial, ready = true, isSignedIn = false, passwordReset = false, onPasswordResetSeen, onSignUp, onForgotPassword }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof SigninValues, string>>>({});
@@ -43,6 +50,7 @@ export function SigninForm({ login, loginSocial, ready = true, isSignedIn = fals
     }
     setErrors(nextErrors);
     setNotice('');
+    onPasswordResetSeen?.();
     if (Object.keys(nextErrors).length) return;
     if (!login || !loginSocial) {
       setNotice('Sign in is not available yet. Please try again once authentication is connected.');
@@ -85,13 +93,13 @@ export function SigninForm({ login, loginSocial, ready = true, isSignedIn = fals
             </View>
             <View style={styles.forgotRow}>
               <Pressable accessibilityRole="button" accessibilityLabel="Forgot Password" disabled={busy !== null}
-                onPress={() => setNotice('Password recovery will be available when its screen is added.')}>
+                onPress={() => { onPasswordResetSeen?.(); onForgotPassword(); }}>
                 <Text style={styles.link}>Forgot Password?</Text>
               </Pressable>
             </View>
-            {(notice || finished || isSignedIn) && <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.notice}>
+            {(notice || finished || isSignedIn || passwordReset) && <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.notice}>
               {finished ? 'You’re signed in. Your next screen is coming soon.'
-                : isSignedIn ? 'You’re already signed in. Your next screen is coming soon.' : notice}
+                : isSignedIn ? 'You’re already signed in. Your next screen is coming soon.' : notice || PASSWORD_RESET_NOTICE}
             </Text>}
             <Pressable accessibilityRole="button" accessibilityLabel="Sign In" aria-busy={busy === 'email'} disabled={locked}
               style={({ pressed }) => [styles.signin, pressed && styles.pressed, locked && styles.disabled]} onPress={() => void submit()}>

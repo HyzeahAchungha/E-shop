@@ -11,14 +11,18 @@ type SetActive = NonNullable<ReturnType<typeof useSignIn>['setActive']>;
 type SSOResult = Awaited<ReturnType<ReturnType<typeof useSSO>['startSSOFlow']>>;
 
 export async function signInWithPassword(
-  signIn: Pick<SigninResource, 'create' | 'status' | 'identifier' | 'createdSessionId'>,
+  signIn: Pick<SigninResource, 'create' | 'status' | 'identifier' | 'createdSessionId'> & { id?: string | null },
   setActive: SetActive,
   values: SigninValues,
+  // A finished password reset also leaves a "complete" attempt. It was never a password
+  // sign-in, so it must not be reused to skip the credential check.
+  isAttemptClosed: (signInId?: string | null) => boolean = () => false,
 ): Promise<SigninResult> {
   const identifier = values.email.trim();
   if (!identifier || !values.password) throw new Error('Email and password are required.');
   // A completed attempt can retry failed activation without resubmitting credentials.
-  const result = signIn.status === 'complete' && signIn.identifier === identifier
+  const retryActivation = signIn.status === 'complete' && signIn.identifier === identifier && !isAttemptClosed(signIn.id);
+  const result = retryActivation
     ? signIn : await signIn.create({ strategy: 'password', identifier, password: values.password });
   if (result.status !== 'complete') {
     return { kind: 'incomplete', message: 'Your account needs an additional verification step. That screen will be added next.' };
