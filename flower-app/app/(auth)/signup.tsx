@@ -1,12 +1,14 @@
 import { useRouter } from 'expo-router';
 
 import { SignupForm } from '@/features/auth/SignupForm';
+import { useSignedInRedirect } from '@/features/auth/useSignedInRedirect';
 import { useSignup } from '@/features/auth/useSignup';
 import { hasClerkConfiguration } from '@/lib/clerk';
 
 function ConnectedSignup({ onSignIn }: { onSignIn: () => void }) {
   const signup = useSignup();
   const router = useRouter();
+  useSignedInRedirect();
   return <SignupForm {...signup} onVerification={() => router.push('/verify-code')} onSignIn={onSignIn} />;
 }
 

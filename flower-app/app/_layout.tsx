@@ -42,6 +42,8 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/reset-code" />
           {/* No swipe-back: Back must cancel the reset explicitly. */}
           <Stack.Screen name="(auth)/new-password" options={{ gestureEnabled: false }} />
+          {/* No back arrow and no swipe-back: a signed-in user finishes the profile first. */}
+          <Stack.Screen name="(auth)/complete-profile" options={{ gestureEnabled: false, animation: 'fade' }} />
         </Stack>
       </View>
     </SafeAreaProvider>
