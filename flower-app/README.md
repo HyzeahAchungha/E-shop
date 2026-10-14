@@ -76,7 +76,7 @@ For browser-based visual inspection only, run `npm run preview:ui`. React DOM an
 
 ## Upcoming services
 
-Clerk signup is integrated as described above. A secure server API backed by Neon PostgreSQL will be connected when shopping screens are defined. Keep Neon credentials and Clerk secret keys exclusively on the backend. Never connect this app directly to Neon. `.env.example` documents the boundary; there are no mock API calls in the current screen.
+Clerk signup is integrated as described above. The secure server API backed by Neon PostgreSQL now lives in `../flower-api` and currently serves the profile only (see Complete Profile below); shopping data will use it later. Keep Neon credentials and Clerk secret keys exclusively on the backend. Never connect this app directly to Neon. `.env.example` documents the boundary; there are no mock API calls in the shipping screens.
 
 ## Verification limits
 
@@ -125,3 +125,21 @@ Clerk leaves a finished reset attempt in the `complete` state. Sign In’s exist
 Shared pieces: `src/components/ui/BackButton.tsx` (the circular back arrow, now also used by Verify Code), `AuthField`, and the existing resend-timer store. No dependencies were added.
 
 Verification limits: typecheck, lint, `npm run test:auth` and the iOS/Android Metro export pass, and the screens were inspected in the browser preview at 393×852 (layout, validation, navigation and review-mode messages). The live Clerk flow (code delivery, resend, `resetPassword`, error messages, accounts with MFA, which currently show an “additional verification” message) is not verified here: no Clerk publishable key is configured and no native device is available. Tests use synthetic Clerk resources. Without a key the forms stay reviewable and say that reset is unavailable; they never fake success.
+
+## Complete Profile
+
+`app/(auth)/complete-profile.tsx` matches the Complete Your Profile reference: a round photo with the pencil badge, Name, Phone Number with a country-code dropdown, Gender, and Complete Profile. The reference's back arrow was removed on request, and Android’s system Back and the iOS swipe-back are disabled too, so a signed-in user finishes the profile first. **There is currently no way to leave the screen without completing it (for example to sign out); add one if you want it.** All four items are required: name (2–80 characters), a valid phone number for the chosen country, a gender (Male, Female, Other, Prefer not to say) and a profile photo.
+
+**When it appears.** Signup, Sign In and Verify Code redirect to `/complete-profile` as soon as Clerk reports a signed-in session (`useSignedInRedirect`). The screen asks the API whether this user already has a profile: new users see the form once; returning users see “You’re all set” instead and are not asked again. If the check fails (offline, server down) the user sees “We could not check your profile” with Try again, never an empty form that could overwrite a saved profile. Completing the profile ends on “Your profile is saved. Your next screen is coming soon.” until the Home screen is supplied. Password reset does not sign the user in, so it does not reach this screen.
+
+**Where the data goes.** Name, phone, country and gender are saved to Neon through the API (`PUT /v1/profile`, see `../flower-api/README.md`). The photo is saved as the user’s Clerk profile picture, and Clerk’s first and last name are updated from the name. Saving updates Clerk first and the API last, so a profile counts as complete only after both succeeded, and “Try again” after a failure never repeats finished steps. The server re-validates everything and checks with Clerk that a photo exists; the app’s own checks (`profile-validation.ts`, kept in step with the server by a parity test) are only for instant feedback. A photo the account already has in Clerk (for example from a social login) satisfies the photo requirement.
+
+**Phone numbers.** The dropdown lists every country with its calling code and has a search box (type a name, ISO code or code such as 237). It is stored by country, because several countries share +1. Numbers are checked per country with `libphonenumber-js` (the approved extra dependency), typed without the country code. The starting country follows the device language and falls back to the reference’s +1. No SMS verification is sent.
+
+**Photo picker.** `expo-image-picker` (approved dependency) opens the photo library with a square crop, JPEG at reduced quality, 5 MB maximum. The camera is not requested; the config plugin in `app.config.ts` declares only the photo-library permission text.
+
+**Setup.** Run `../flower-api` and set `EXPO_PUBLIC_API_URL` in `.env.local` (an address, never a secret; plain `http` is accepted only in development builds). Without it, or without a Clerk key, the form stays reviewable, validates, and says that saving is unavailable; it never reports a fake success.
+
+New shared pieces: `AvatarPicker`, `PhoneField`, `SelectField` and `SelectModal` in `src/components/ui/`, `src/lib/api-client.ts` (the only code that calls the backend; it adds the Clerk token, times out after 15 seconds and maps errors), and `src/types/profile.ts`.
+
+Verification limits: typecheck, lint, `npm run test:auth` (68 tests) and the iOS/Android Metro export pass, and the screen was inspected in the browser preview at 393×852 (layout, validation, country search, gender options, required photo, no back arrow). Not verified here: the live Clerk calls (`user.update`, `setProfileImage`, the redirect after a real sign-in), the native photo picker and crop on a device, and the API against real Clerk tokens and Neon, because no keys or devices are available. Test the whole path on a phone with both services configured before approving.
