@@ -44,6 +44,8 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/new-password" options={{ gestureEnabled: false }} />
           {/* No back arrow and no swipe-back: a signed-in user finishes the profile first. */}
           <Stack.Screen name="(auth)/complete-profile" options={{ gestureEnabled: false, animation: 'fade' }} />
+          {/* Same for location: it is the step after the profile, with no way back. */}
+          <Stack.Screen name="(auth)/location" options={{ gestureEnabled: false, animation: 'fade' }} />
         </Stack>
       </View>
     </SafeAreaProvider>

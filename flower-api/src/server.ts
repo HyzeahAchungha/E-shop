@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 
 import { createApp } from './app.ts';
 import { createClerkAuthenticator, createClerkPhotoChecker } from './auth.ts';
+import { createSqlLocationStore } from './location-store.ts';
 import { createNeonQuery, createSqlProfileStore } from './profile-store.ts';
 
 function required(name: string): string {
@@ -14,10 +15,12 @@ function required(name: string): string {
 }
 
 const clerkSecretKey = required('CLERK_SECRET_KEY');
+const query = createNeonQuery(required('DATABASE_URL'));
 const app = createApp({
   authenticate: createClerkAuthenticator(clerkSecretKey, { jwtKey: process.env.CLERK_JWT_KEY?.trim() || undefined }),
   hasProfilePhoto: createClerkPhotoChecker(clerkSecretKey),
-  store: createSqlProfileStore(createNeonQuery(required('DATABASE_URL'))),
+  store: createSqlProfileStore(query),
+  locationStore: createSqlLocationStore(query),
 });
 
 const port = Number(process.env.PORT) || 8787;

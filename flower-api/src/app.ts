@@ -1,15 +1,17 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { secureHeaders } from 'hono/secure-headers';
 
 import type { Authenticator, PhotoChecker } from './auth.ts';
+import type { LocationStore } from './location-store.ts';
+import { validateLocation } from './location-validation.ts';
 import type { ProfileStore } from './profile-store.ts';
 import { validateProfile } from './profile-validation.ts';
 
-type Deps = { authenticate: Authenticator; store: ProfileStore; hasProfilePhoto: PhotoChecker };
+type Deps = { authenticate: Authenticator; store: ProfileStore; locationStore: LocationStore; hasProfilePhoto: PhotoChecker };
 type Env = { Variables: { userId: string } };
 
-export function createApp({ authenticate, store, hasProfilePhoto }: Deps) {
+export function createApp({ authenticate, store, locationStore, hasProfilePhoto }: Deps) {
   const app = new Hono();
   app.use(secureHeaders());
 
@@ -31,26 +33,42 @@ export function createApp({ authenticate, store, hasProfilePhoto }: Deps) {
     await next();
   });
 
+  // Reads a JSON request body, or returns the error response to send back.
+  async function readJson(c: Context<Env>): Promise<{ body: unknown } | { error: Response }> {
+    if (!c.req.header('content-type')?.toLowerCase().startsWith('application/json')) {
+      return { error: c.json({ error: 'unsupported_media_type' }, 415) };
+    }
+    try {
+      return { body: await c.req.json() };
+    } catch {
+      return { error: c.json({ error: 'invalid_json' }, 400) };
+    }
+  }
+
   v1.get('/profile', async (c) => c.json({ profile: await store.get(c.get('userId')) }));
 
   v1.put('/profile', async (c) => {
-    if (!c.req.header('content-type')?.toLowerCase().startsWith('application/json')) {
-      return c.json({ error: 'unsupported_media_type' }, 415);
-    }
-    let body: unknown;
-    try {
-      body = await c.req.json();
-    } catch {
-      return c.json({ error: 'invalid_json' }, 400);
-    }
+    const parsed = await readJson(c);
+    if ('error' in parsed) return parsed.error;
     // Only the fields we validate are saved. A user id in the body is ignored on purpose.
-    const result = validateProfile(body);
+    const result = validateProfile(parsed.body);
     if (!result.ok) return c.json({ error: 'validation_failed', fields: result.errors }, 422);
     // A photo is required. It is stored in Clerk, so ask Clerk rather than trusting the app.
     if (!(await hasProfilePhoto(c.get('userId')))) {
       return c.json({ error: 'validation_failed', fields: { photo: 'Add a profile photo.' } }, 422);
     }
     return c.json({ profile: await store.upsert(c.get('userId'), result.value) });
+  });
+
+  v1.get('/location', async (c) => c.json({ location: await locationStore.get(c.get('userId')) }));
+
+  v1.put('/location', async (c) => {
+    const parsed = await readJson(c);
+    if ('error' in parsed) return parsed.error;
+    // Coordinates are rounded to about 1 km here, whatever precision the app sent.
+    const result = validateLocation(parsed.body);
+    if (!result.ok) return c.json({ error: 'validation_failed', fields: result.errors }, 422);
+    return c.json({ location: await locationStore.upsert(c.get('userId'), result.value) });
   });
 
   app.route('/v1', v1);

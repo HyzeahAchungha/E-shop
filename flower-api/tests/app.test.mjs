@@ -23,7 +23,8 @@ function memoryStore() {
   };
 }
 // By default every user has a photo; individual tests pass `photos` to change that.
-const setup = (store = memoryStore(), photos = async () => true) => ({ store, app: createApp({ authenticate, store, hasProfilePhoto: photos }) });
+const unusedLocationStore = { get: async () => null, upsert: async () => { throw new Error('profile tests never save a location'); } };
+const setup = (store = memoryStore(), photos = async () => true) => ({ store, app: createApp({ authenticate, store, locationStore: unusedLocationStore, hasProfilePhoto: photos }) });
 const as = (id, extra = {}) => ({ authorization: `Bearer token-${id}`, ...extra });
 const put = (app, id, body, headers = {}) => app.request('/v1/profile', {
   method: 'PUT', headers: as(id, { 'content-type': 'application/json', ...headers }), body: typeof body === 'string' ? body : JSON.stringify(body),

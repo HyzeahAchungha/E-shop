@@ -76,7 +76,7 @@ For browser-based visual inspection only, run `npm run preview:ui`. React DOM an
 
 ## Upcoming services
 
-Clerk signup is integrated as described above. The secure server API backed by Neon PostgreSQL now lives in `../flower-api` and currently serves the profile only (see Complete Profile below); shopping data will use it later. Keep Neon credentials and Clerk secret keys exclusively on the backend. Never connect this app directly to Neon. `.env.example` documents the boundary; there are no mock API calls in the shipping screens.
+Clerk signup is integrated as described above. The secure server API backed by Neon PostgreSQL now lives in `../flower-api` and currently serves the profile and location (see Complete Profile and Location below); shopping data will use it later. Keep Neon credentials and Clerk secret keys exclusively on the backend. Never connect this app directly to Neon. `.env.example` documents the boundary; there are no mock API calls in the shipping screens.
 
 ## Verification limits
 
@@ -130,7 +130,7 @@ Verification limits: typecheck, lint, `npm run test:auth` and the iOS/Android Me
 
 `app/(auth)/complete-profile.tsx` matches the Complete Your Profile reference: a round photo with the pencil badge, Name, Phone Number with a country-code dropdown, Gender, and Complete Profile. The reference's back arrow was removed on request, and Android’s system Back and the iOS swipe-back are disabled too, so a signed-in user finishes the profile first. **There is currently no way to leave the screen without completing it (for example to sign out); add one if you want it.** All four items are required: name (2–80 characters), a valid phone number for the chosen country, a gender (Male, Female, Other, Prefer not to say) and a profile photo.
 
-**When it appears.** Signup, Sign In and Verify Code redirect to `/complete-profile` as soon as Clerk reports a signed-in session (`useSignedInRedirect`). The screen asks the API whether this user already has a profile: new users see the form once; returning users see “You’re all set” instead and are not asked again. If the check fails (offline, server down) the user sees “We could not check your profile” with Try again, never an empty form that could overwrite a saved profile. Completing the profile ends on “Your profile is saved. Your next screen is coming soon.” until the Home screen is supplied. Password reset does not sign the user in, so it does not reach this screen.
+**When it appears.** Signup, Sign In and Verify Code redirect to `/complete-profile` as soon as Clerk reports a signed-in session (`useSignedInRedirect`). The screen asks the API whether this user already has a profile: new users see the form once; returning users see “You’re all set” instead and are not asked again. If the check fails (offline, server down) the user sees “We could not check your profile” with Try again, never an empty form that could overwrite a saved profile. Completing the profile opens the Location screen (a user whose profile was already complete goes there directly instead of seeing “You’re all set”). Password reset does not sign the user in, so it does not reach this screen.
 
 **Where the data goes.** Name, phone, country and gender are saved to Neon through the API (`PUT /v1/profile`, see `../flower-api/README.md`). The photo is saved as the user’s Clerk profile picture, and Clerk’s first and last name are updated from the name. Saving updates Clerk first and the API last, so a profile counts as complete only after both succeeded, and “Try again” after a failure never repeats finished steps. The server re-validates everything and checks with Clerk that a photo exists; the app’s own checks (`profile-validation.ts`, kept in step with the server by a parity test) are only for instant feedback. A photo the account already has in Clerk (for example from a social login) satisfies the photo requirement.
 
@@ -143,3 +143,15 @@ Verification limits: typecheck, lint, `npm run test:auth` and the iOS/Android Me
 New shared pieces: `AvatarPicker`, `PhoneField`, `SelectField` and `SelectModal` in `src/components/ui/`, `src/lib/api-client.ts` (the only code that calls the backend; it adds the Clerk token, times out after 15 seconds and maps errors), and `src/types/profile.ts`.
 
 Verification limits: typecheck, lint, `npm run test:auth` (68 tests) and the iOS/Android Metro export pass, and the screen was inspected in the browser preview at 393×852 (layout, validation, country search, gender options, required photo, no back arrow). Not verified here: the live Clerk calls (`user.update`, `setProfileImage`, the redirect after a real sign-in), the native photo picker and crop on a device, and the API against real Clerk tokens and Neon, because no keys or devices are available. Test the whole path on a phone with both services configured before approving.
+
+## Location
+
+`app/(auth)/location.tsx` matches the “What is Your Location?” reference: a pin in a grey circle, the heading, “To Find Nearby Florist.”, a purple **Allow Location Access** button and an **Enter Location Manually** link. It opens right after the profile is saved. There is no back arrow, and Android Back and the iOS swipe-back are disabled, like Complete Profile.
+
+**Permission.** `expo-location` (approved dependency) asks only for “while using the app” access. The config plugin in `app.config.ts` turns off “always”, background and motion access. If the user says no, the screen explains it and the manual option stays; if they chose “don’t ask again”, an **Open Settings** button appears. Location services being off, or no fix within 20 seconds, show their own messages.
+
+**Privacy.** The user has one saved location. The device rounds the coordinates to 2 decimals (about 1 km) *before* looking up the place name, so only the rounded point is ever sent to a geocoder or the API. The server rounds again and the database enforces it with a CHECK constraint; `tests/location-parity.test.mjs` in the API keeps both roundings equal. It is saved with `PUT /v1/location` (see `../flower-api/README.md`).
+
+**Not built yet.** **Enter Location Manually** only says it is coming soon until that screen is supplied. After saving, the screen shows “Your location is saved. Your next screen is coming soon.” until the Home screen is supplied. Users who already saved a location see “You’re all set”.
+
+Verification limits: typecheck, lint, `npm run test:auth` and the iOS/Android export pass, and the screen was inspected in the browser preview at 393×852 (layout, manual link, browser permission granted and denied). Not verified here: the native permission prompts, GPS and reverse geocoding on a device, and live Clerk/Neon saving, because no keys or devices are available.
