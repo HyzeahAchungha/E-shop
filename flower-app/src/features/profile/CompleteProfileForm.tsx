@@ -26,6 +26,8 @@ type Props = {
   pickAvatar?: () => Promise<PickedAvatar | null>;
   submit?: (input: ProfileInput, avatarDataUri: string | null) => Promise<Profile>;
   retry?: () => void;
+  /** Called once the profile is saved, so the route can open the next screen. */
+  onSaved?: () => void;
   onSignIn: () => void;
 };
 
@@ -37,7 +39,7 @@ function deviceCountry(): string {
   }
 }
 
-export function CompleteProfileForm({ status = 'form', initialName = '', initialPhotoUri = null, pickAvatar, submit, retry, onSignIn }: Props) {
+export function CompleteProfileForm({ status = 'form', initialName = '', initialPhotoUri = null, pickAvatar, submit, retry, onSaved, onSignIn }: Props) {
   const blockBack = status === 'form' || status === 'complete';
 
   // There is no back arrow on this screen, so Android's system Back must not leave it either.
@@ -49,7 +51,7 @@ export function CompleteProfileForm({ status = 'form', initialName = '', initial
 
   return (
     <SafeAreaView style={styles.screen}>
-      {status === 'form' ? <FormBody initialName={initialName} initialPhotoUri={initialPhotoUri} pickAvatar={pickAvatar} submit={submit} />
+      {status === 'form' ? <FormBody initialName={initialName} initialPhotoUri={initialPhotoUri} pickAvatar={pickAvatar} submit={submit} onSaved={onSaved} />
         : <Message status={status} retry={retry} onSignIn={onSignIn} />}
     </SafeAreaView>
   );
@@ -84,7 +86,7 @@ function Message({ status, retry, onSignIn }: { status: CompleteProfileStatus; r
   );
 }
 
-function FormBody({ initialName, initialPhotoUri, pickAvatar, submit }: Pick<Props, 'initialName' | 'initialPhotoUri' | 'pickAvatar' | 'submit'>) {
+function FormBody({ initialName, initialPhotoUri, pickAvatar, submit, onSaved }: Pick<Props, 'initialName' | 'initialPhotoUri' | 'pickAvatar' | 'submit' | 'onSaved'>) {
   const [name, setName] = useState(initialName ?? '');
   const [countryIso, setCountryIso] = useState(deviceCountry);
   const [phone, setPhone] = useState('');
@@ -147,7 +149,10 @@ function FormBody({ initialName, initialPhotoUri, pickAvatar, submit }: Pick<Pro
     Keyboard.dismiss();
     try {
       await submit(result.value, avatar?.dataUri ?? null);
-      if (mounted.current) setSaved(true);
+      if (mounted.current) {
+        setSaved(true);
+        onSaved?.();
+      }
     } catch (error) {
       if (!mounted.current) return;
       if (error instanceof ApiError && error.code === 'validation') {

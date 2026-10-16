@@ -9,10 +9,14 @@ The secure backend for the Flower Shop app. It is the only service that talks to
 | `GET /health` | Public liveness check. Reveals nothing. |
 | `GET /v1/profile` | The signed-in user's profile, or `{ "profile": null }` when they have not completed one. |
 | `PUT /v1/profile` | Validates and saves (create or update) the signed-in user's profile. |
+| `GET /v1/location` | The signed-in user's saved location, or `{ "location": null }`. |
+| `PUT /v1/location` | Validates and saves (create or replace) the user's one location: `placeName`, `latitude`, `longitude`. |
 
 Every `/v1` route requires `Authorization: Bearer <Clerk session token>`. The server verifies the token's signature, expiry and not-before time with `@clerk/backend`; the user id comes only from the verified token. A user id in a request body is ignored, so one user can never read or write another's profile.
 
 Profile rules are enforced here and never trusted from the app: name 2–80 characters; a country (ISO code) and a phone number that is valid for it, checked with libphonenumber-js and stored both as typed-nationally and as E.164; gender one of `male`, `female`, `other`, `prefer_not_to_say`. The profile photo lives in Clerk, so `PUT` asks Clerk whether the user has one and answers `422` with `{ "fields": { "photo": … } }` when they do not. The app shows these messages on the matching field.
+
+Location rules: place name 2–120 characters without control characters; latitude −90..90 and longitude −180..180 as real numbers. Coordinates are rounded to 2 decimals (about 1 km) on the server and by a database CHECK constraint, so a precise point is never stored. One row per user, replaced on each save.
 
 Other protections: request bodies are limited to 4 KB, only JSON is accepted, responses are `Cache-Control: no-store`, security headers are set, every SQL value is a bound parameter, and errors reach the client as short codes while details stay in the server log. The log gets only an error's message: request bodies, tokens and profile fields are never written to it by this code.
 
@@ -24,7 +28,7 @@ Requires Node.js 22.18 or newer.
 cd flower-api
 npm ci
 cp .env.example .env     # then fill in the two secrets below
-npm run migrate          # creates the profiles table in Neon (safe to run again)
+npm run migrate          # creates the profiles and user_locations tables in Neon (safe to run again)
 npm start                # listens on PORT (default 8787); `npm run dev` restarts on changes
 ```
 
@@ -43,7 +47,7 @@ npm run typecheck
 npm test
 ```
 
-The tests run the real SQL (the migration and the upsert) in an in-memory PostgreSQL (PGlite), call the HTTP app with fake Clerk resources, and check that the app and server validators agree (`tests/parity.test.mjs`).
+The tests run the real SQL (the migration and the upsert) in an in-memory PostgreSQL (PGlite), call the HTTP app with fake Clerk resources, and check that the app and server validators agree (`tests/parity.test.mjs`, `tests/location-parity.test.mjs`).
 
 ## Not done yet
 
